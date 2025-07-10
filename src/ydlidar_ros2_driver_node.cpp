@@ -23,6 +23,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/time_source.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "std_msgs/msg/bool.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include <vector>
 #include <iostream>
@@ -180,6 +181,7 @@ int main(int argc, char *argv[]) {
   }
   
   auto laser_pub = node->create_publisher<sensor_msgs::msg::LaserScan>("scan", rclcpp::SensorDataQoS());
+  auto is_timeout_pub = node->create_publisher<std_msgs::msg::Bool>("~/is_timeout", 10);
 
   auto stop_scan_service =
     [&laser](const std::shared_ptr<rmw_request_id_t> request_header,
@@ -202,6 +204,8 @@ int main(int argc, char *argv[]) {
   auto start_service = node->create_service<std_srvs::srv::Empty>("start_scan",start_scan_service);
 
   rclcpp::WallRate loop_rate(20);
+
+  bool is_timeout = true;
 
   //std::ofstream file("pointcloud_data.txt"); // 打开文件流
   while (ret && rclcpp::ok()) 
@@ -235,11 +239,25 @@ int main(int argc, char *argv[]) {
         }
         //file << "i:" << i << ",a:" << p.angle << ",d:" << p.range << ",p:" << p.intensity << std::endl;
       }
+      if (is_timeout) {
+        is_timeout = false;
+        std_msgs::msg::Bool bool_msg;
+        bool_msg.data = is_timeout;
+        is_timeout_pub->publish(bool_msg);
+      }
       laser_pub->publish(*scan_msg);
     } 
     else 
     {
       RCLCPP_ERROR(node->get_logger(), "Failed to get scan");
+      is_timeout = true;
+      std_msgs::msg::Bool bool_msg;
+      bool_msg.data = is_timeout;
+      is_timeout_pub->publish(bool_msg);
+      if(is_timeout) {
+        RCLCPP_ERROR(node->get_logger(), "Timeout detected on serial data. Publishing is_timeout true.");
+      }
+
     }
     if(!rclcpp::ok()) 
     {
@@ -249,7 +267,17 @@ int main(int argc, char *argv[]) {
     loop_rate.sleep();
   }
 
+  // PUBLISH IS TIMEOUT HERE 
   RCLCPP_INFO(node->get_logger(), "[YDLIDAR INFO] Now YDLIDAR is stopping .......");
+
+  std_msgs::msg::Bool bool_msg;
+  bool_msg.data = is_timeout;
+  is_timeout_pub->publish(bool_msg);
+  if(is_timeout) {
+    RCLCPP_ERROR(node->get_logger(), "Timeout detected on serial data. Publishing is_timeout true.");
+  }
+
+
   laser.turnOff();
   laser.disconnecting();
   rclcpp::shutdown();
