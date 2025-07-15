@@ -267,7 +267,6 @@ int main(int argc, char *argv[]) {
     loop_rate.sleep();
   }
 
-  // PUBLISH IS TIMEOUT HERE 
   RCLCPP_INFO(node->get_logger(), "[YDLIDAR INFO] Now YDLIDAR is stopping .......");
 
   std_msgs::msg::Bool bool_msg;
