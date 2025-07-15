@@ -16,6 +16,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rmw REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
@@ -45,6 +46,7 @@ add_executable(${PROJECT_NAME}_node
 ament_target_dependencies(${PROJECT_NAME}_node
     "rclcpp"
     "sensor_msgs"
+    "std_msgs"
     "visualization_msgs"
     "geometry_msgs"
     "std_srvs"
@@ -64,6 +66,7 @@ add_executable(${PROJECT_NAME}_client
 ament_target_dependencies(${PROJECT_NAME}_client
     "rclcpp"
     "sensor_msgs"
+    "std_msgs"
     "visualization_msgs"
     "geometry_msgs"
     "std_srvs"
