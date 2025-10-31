@@ -20,6 +20,7 @@ find_package(std_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(backward_ros REQUIRED)
 
 ############## YDLIDAR SDK START#####################################
 #find ydlidar_sdk package
