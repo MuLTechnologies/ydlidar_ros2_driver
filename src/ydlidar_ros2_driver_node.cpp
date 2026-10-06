@@ -155,6 +155,11 @@ int main(int argc, char *argv[]) {
   node->declare_parameter("invalid_range_is_inf", rclcpp::PARAMETER_BOOL);
   node->get_parameter("invalid_range_is_inf", invalid_range_is_inf);
 
+  /// unit: m, added to every valid range to correct a per-unit range bias
+  double range_offset = 0.0;
+  node->declare_parameter("range_offset", range_offset);
+  node->get_parameter("range_offset", range_offset);
+
   //初始化
   bool ret = laser.initialize();
   if (ret) 
@@ -234,7 +239,8 @@ int main(int argc, char *argv[]) {
         const auto& p = scan.points.at(i);
         int index = std::ceil((scan.points[i].angle - scan.config.min_angle)/scan.config.angle_increment);
         if(index >=0 && index < size) {
-          scan_msg->ranges[index] = scan.points[i].range;
+          float range = scan.points[i].range;
+          scan_msg->ranges[index] = range > 0.0f ? range + range_offset : range;
           scan_msg->intensities[index] = scan.points[i].intensity;
         }
         //file << "i:" << i << ",a:" << p.angle << ",d:" << p.range << ",p:" << p.intensity << std::endl;
